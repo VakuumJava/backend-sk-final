@@ -1,0 +1,53 @@
+# Django Core Framework
+Django==5.1.6
+
+# Django REST Framework for API development
+djangorestframework==3.15.2
+
+# CORS headers for frontend-backend communication
+django-cors-headers==4.6.0
+
+# Additional utilities for HTTP requests (used in test files)
+requests==2.32.3
+
+# Database (SQLite is included with Django by default)
+# Production databases (uncomment as needed):
+# psycopg2-binary==2.9.9  # PostgreSQL
+# mysqlclient==2.2.0      # MySQL
+
+# Development and Testing
+pytest==8.3.2
+pytest-django==4.9.0
+
+# Environment and Development Tools
+python-decouple==3.8
+
+# Date and Time utilities
+pytz==2024.1
+
+# Data Processing and Export
+openpyxl==3.1.2
+django-import-export==4.0.0
+
+# Image Processing
+Pillow==10.4.0
+
+# Development Tools (uncomment for development)
+# django-debug-toolbar==4.4.6
+# django-extensions==3.2.3
+
+# Production Tools (uncomment for production)
+# gunicorn==21.2.0
+# whitenoise==6.6.0
+
+# Caching with Redis (uncomment if using Redis)
+# redis==5.0.7
+# django-redis==5.4.0
+
+# Background Tasks (uncomment if using Celery)
+# celery==5.3.4
+
+# Additional utilities that might be useful
+# django-filter==23.5     # For filtering querysets
+# django-crispy-forms==2.1 # For better forms
+# djangorestframework-simplejwt==5.3.0  # JWT authentication
