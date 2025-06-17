@@ -15,6 +15,12 @@ python manage.py makemigrations api1
 echo "Running Django migrations..."
 python manage.py migrate
 
+# Create superuser if environment variables are set
+if [ "$DJANGO_SUPERUSER_EMAIL" ] && [ "$DJANGO_SUPERUSER_PASSWORD" ]; then
+    echo "Creating superuser..."
+    python manage.py createsuperuser --noinput --email "$DJANGO_SUPERUSER_EMAIL" || echo "Superuser already exists or failed to create"
+fi
+
 # Start gunicorn
 echo "Starting gunicorn server..."
 exec gunicorn project_settings.wsgi:application \
