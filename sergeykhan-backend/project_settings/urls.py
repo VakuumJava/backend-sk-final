@@ -42,7 +42,7 @@ def health_check(request):
 urlpatterns = [
     path('', health_check, name='health_check'),
     path('admin/', admin.site.urls),
-    path('api/', include('api1.urls')),
+    path('', include('api1.urls')),
 ]
 
 # Добавляем обслуживание медиа файлов в режиме разработки
