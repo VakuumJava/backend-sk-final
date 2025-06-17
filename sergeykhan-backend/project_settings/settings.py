@@ -30,6 +30,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '0.0.0.0',
+    'backend-sk-production.up.railway.app',
     'sergeykhanweb-production.up.railway.app',
     '.railway.app',
     '.vercel.app',
@@ -127,9 +128,28 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3001",
     "http://localhost:3002",
     "http://localhost:3003",
+    "https://backend-sk-production.up.railway.app",
     "https://sergeykhanweb-production.up.railway.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF Configuration
+CSRF_TRUSTED_ORIGINS = [
+    "https://backend-sk-production.up.railway.app",
+    "https://sergeykhanweb-production.up.railway.app",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "http://localhost:3003",
+]
+
+# Additional CSRF settings for production
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 # (Optional) further tighten or expand headers/methods:
 # CORS_ALLOW_HEADERS = [
 #     "content-type",
