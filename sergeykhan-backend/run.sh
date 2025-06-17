@@ -7,9 +7,13 @@ echo "Starting Django application..."
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-# Run migrations
-echo "Running migrations..."
-python manage.py migrate --noinput
+# Create migrations if they don't exist
+echo "Creating migrations for api1..."
+python manage.py makemigrations api1
+
+# Run all migrations
+echo "Running Django migrations..."
+python manage.py migrate
 
 # Start gunicorn
 echo "Starting gunicorn server..."
