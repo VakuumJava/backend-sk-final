@@ -1,4 +1,14 @@
 #!/bin/bash
+set -e
+
+echo "Starting Django deployment..."
+
+# Install dependencies if needed
+if [ ! -d ".venv" ]; then
+    echo "Installing dependencies..."
+    python -m pip install --upgrade pip
+    python -m pip install -r requirements.txt
+fi
 
 # Collect static files
 echo "Collecting static files..."
@@ -15,5 +25,5 @@ if [ "$DJANGO_SUPERUSER_USERNAME" ]; then
 fi
 
 # Start gunicorn
-echo "Starting server..."
-exec gunicorn project_settings.wsgi:application --bind 0.0.0.0:$PORT
+echo "Starting server on port $PORT..."
+exec gunicorn project_settings.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120

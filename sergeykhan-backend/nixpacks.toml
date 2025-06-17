@@ -1,12 +1,11 @@
-# Nixpacks plan for Django deployment
 [phases.setup]
-nixPkgs = ["python311"]
+nixPkgs = ["python312", "python312Packages.pip", "python312Packages.setuptools", "python312Packages.wheel"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
+cmds = ["./build.sh"]
 
 [phases.build]
-cmds = ["python manage.py collectstatic --noinput"]
+cmds = ["python manage.py migrate --noinput"]
 
 [start]
-cmd = "./start.sh"
+cmd = "gunicorn project_settings.wsgi:application --bind 0.0.0.0:$PORT --workers 3"
