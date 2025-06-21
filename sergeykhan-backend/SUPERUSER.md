@@ -37,6 +37,34 @@ exit()
 - `'super-admin'` - Супер админ ✅
 - `'curator'` - Куратор
 
+## ⚠️ ПРОБЛЕМА CORS И 404 ОШИБКИ:
+
+### Если видите ошибки в консоли браузера:
+
+1. **404 Not Found на `/api/v1/services/`** 
+   - URL должен быть: `https://backend-sk-final-production.up.railway.app/api/services/`
+   - Проверьте правильность URL в frontend коде
+
+2. **CORS ошибка "strict-origin-when-cross-origin"**
+   - Добавьте в Railway Environment Variables:
+
+```bash
+CORS_ALLOWED_ORIGINS=https://sergey-khan-web-gamma.vercel.app,https://backend-sk-final-production.up.railway.app,http://localhost:3000
+
+CSRF_TRUSTED_ORIGINS=https://sergey-khan-web-gamma.vercel.app,https://backend-sk-final-production.up.railway.app
+```
+
+3. **Быстрое решение для тестирования:**
+```bash
+CORS_ALLOW_ALL_ORIGINS=True
+```
+
+### После установки переменных:
+1. Зайдите в Railway Dashboard
+2. Settings → Environment Variables  
+3. Добавьте переменные выше
+4. Нажмите "Redeploy"
+
 ## Как установить переменные в Railway:
 
 ### Через CLI:

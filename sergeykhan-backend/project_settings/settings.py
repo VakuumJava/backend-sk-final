@@ -42,6 +42,7 @@ else:
         'https://backend-sk-final-production.up.railway.app',
         'https://sergeykhan-backend-production.up.railway.app',
         'https://*.railway.app',
+        'https://sergey-khan-web-visitor.vercel.app/',
         'https://sergey-khan-web-gamma.vercel.app',
         'https://*.vercel.app',
     ]
@@ -152,6 +153,7 @@ if not CORS_ALLOW_ALL_ORIGINS:
             "https://sergey-khan-web-gamma.vercel.app",
             "https://sergeykhan-backend-production.up.railway.app",
             "https://*.railway.app",
+            "https://sergey-khan-web-visitor.vercel.app/"
         ]
 
 CORS_ALLOW_CREDENTIALS = True
