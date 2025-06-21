@@ -23,7 +23,7 @@ if not User.objects.filter(email='$DJANGO_SUPERUSER_EMAIL').exists():
         password='$DJANGO_SUPERUSER_PASSWORD',
         first_name='Admin',
         last_name='User',
-        role='admin'
+        role='super-admin'
     )
     print('Superuser created successfully')
 else:

@@ -9,29 +9,33 @@
 - **Email**: `admin@sergeykhan.com`
 - **Пароль**: `Admin123!SerKey`
 
-## ⚠️ ПРОБЛЕМА CORS С VERCEL:
+## 🔧 ИСПРАВЛЕНИЕ РОЛИ ПОЛЬЗОВАТЕЛЯ:
 
-Если frontend на Vercel (`sergey-khan-web-gamma.vercel.app`) не может подключиться к backend, добавьте в Railway variables:
+Если у пользователя нет правильной роли, выполните:
 
-### Через Railway Dashboard:
-1. Зайдите в Railway project → Settings → Environment Variables
-2. Добавьте/обновите переменные:
-
+### Через Railway shell:
 ```bash
-CORS_ALLOWED_ORIGINS=http://localhost:3000,https://backend-sk-final-production.up.railway.app,https://sergey-khan-web-gamma.vercel.app
-CSRF_TRUSTED_ORIGINS=https://backend-sk-final-production.up.railway.app,https://sergey-khan-web-gamma.vercel.app,https://*.vercel.app
+railway shell
 ```
 
-3. Перезапустите деплой в Railway
-
-## 🛠️ Альтернативное решение:
-Если проблемы с CORS сохраняются, временно можно разрешить все домены (ТОЛЬКО для тестирования):
-
-```bash
-CORS_ALLOW_ALL_ORIGINS=True
+Затем в shell выполните:
+```python
+from django.contrib.auth import get_user_model
+User = get_user_model()
+user = User.objects.get(email='admin@sergeykhan.com')
+print(f'Текущая роль: {user.role}')
+user.role = 'super-admin'
+user.save()
+print(f'Новая роль: {user.role}')
+exit()
 ```
 
-**⚠️ Уберите эту настройку перед продакшеном!**
+### Доступные роли в системе:
+- `'master'` - Мастер
+- `'operator'` - Оператор  
+- `'warrant-master'` - Гарантийный мастер
+- `'super-admin'` - Супер админ ✅
+- `'curator'` - Куратор
 
 ## Как установить переменные в Railway:
 

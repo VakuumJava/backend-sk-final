@@ -34,7 +34,7 @@ def create_superuser():
         password=password,
         first_name='Admin',
         last_name='User',
-        role='admin'
+        role='super-admin'
     )
     
     print(f'Суперпользователь создан успешно!')
