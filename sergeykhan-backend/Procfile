@@ -1,2 +1,1 @@
-release: python init_django.py
-web: gunicorn project_settings.wsgi --bind 0.0.0.0:$PORT --workers 3
+web: gunicorn project_settings.wsgi --log-file -

@@ -1,0 +1,5 @@
+[start]
+cmd = "./startup.sh && gunicorn project_settings.wsgi --log-file -"
+
+[variables]
+NIXPACKS_PYTHON_VERSION = "3.12"
