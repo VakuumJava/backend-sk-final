@@ -178,3 +178,7 @@ dump.rdb
 # OS
 .DS_Store
 Thumbs.db
+
+# Virtual environment
+venv/
+env/

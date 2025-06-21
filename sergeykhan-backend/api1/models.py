@@ -208,18 +208,7 @@ class Order(models.Model):
                 'curator_percent': global_settings.curator_percent,
                 'company_percent': global_settings.company_percent,
                 'is_individual': False,
-                'settings_id': None
-            }
-
-
-# Модель баланса пользователя
-class Balance(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='balance')
-    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Текущий баланс
-    paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Выплаченная сумма за все время
-
-    def __str__(self):
-        return f"Balance: {self.user.email} - Current: {self.amount}, Paid: {self.paid_amount}"
+                'settings_id': None            }
 
 
 class BalanceLog(models.Model):

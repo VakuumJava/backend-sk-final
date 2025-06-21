@@ -17,6 +17,12 @@ sergeykhan-backend/
 └── .gitignore           # Git ignore rules
 ```
 
+## Fixed Issues
+✅ **Removed duplicate Balance model** - Fixed RuntimeWarning about model registration  
+✅ **Fixed WSGI/ASGI configuration** - Updated `project_settings.settings` path  
+✅ **Clean project structure** - Removed all test, debug, and temporary files  
+✅ **Production-ready settings** - Configured for Railway deployment  
+
 ## Prerequisites
 1. Railway CLI installed
 2. Railway account connected
