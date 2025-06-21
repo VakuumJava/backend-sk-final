@@ -29,8 +29,26 @@ ALLOWED_HOSTS = [
     'localhost',
     '*.railway.app',
     '.railway.app',
+    'backend-sk-final-production.up.railway.app',
     'sergeykhan-backend-production.up.railway.app'
 ]
+
+# CSRF settings for Railway deployment
+csrf_origins_str = config('CSRF_TRUSTED_ORIGINS', default="")
+if csrf_origins_str:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_str.split(',')]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://backend-sk-final-production.up.railway.app',
+        'https://sergeykhan-backend-production.up.railway.app',
+        'https://*.railway.app',
+        'https://sergey-khan-web-gamma.vercel.app',
+        'https://*.vercel.app',
+    ]
+
+# Security settings for production
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = False  # Railway handles SSL
 
 
 # Application definition
@@ -111,18 +129,31 @@ REST_FRAMEWORK = {
 
 
 # CORS configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002",
-    "http://localhost:3003",
-    "http://localhost:3004",
-    "http://localhost:3005",
-    "http://localhost:3006",
-    "http://localhost:3007",
-    "http://localhost:3008",
-    "http://localhost:3009",
-]
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+
+# If not allowing all origins, specify allowed origins
+if not CORS_ALLOW_ALL_ORIGINS:
+    cors_origins_str = config('CORS_ALLOWED_ORIGINS', default="")
+    if cors_origins_str:
+        CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',')]
+    else:
+        CORS_ALLOWED_ORIGINS = [
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:3002",
+            "http://localhost:3003",
+            "http://localhost:3004",
+            "http://localhost:3005",
+            "http://localhost:3006",
+            "http://localhost:3007",
+            "http://localhost:3008",
+            "http://localhost:3009",
+            "https://backend-sk-final-production.up.railway.app",
+            "https://sergey-khan-web-gamma.vercel.app",
+            "https://sergeykhan-backend-production.up.railway.app",
+            "https://*.railway.app",
+        ]
+
 CORS_ALLOW_CREDENTIALS = True
 # (Optional) further tighten or expand headers/methods:
 # CORS_ALLOW_HEADERS = [
