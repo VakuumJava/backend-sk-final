@@ -69,7 +69,7 @@ def get_master_daily_schedule(request, master_id, schedule_date=None):
             }
             
             # Добавляем информацию о заказе, если слот занят
-            if slot['order']:
+            if slot['order'] and slot['order'].status not in ['завершен', 'отклонен']:
                 slot_data['order'] = {
                     'id': slot['order'].id,
                     'client_name': slot['order'].client_name,
@@ -80,6 +80,11 @@ def get_master_daily_schedule(request, master_id, schedule_date=None):
                     'service_type': slot['order'].service_type,
                     'estimated_cost': float(slot['order'].estimated_cost) if slot['order'].estimated_cost else None
                 }
+            elif slot['order'] and slot['order'].status in ['завершен', 'отклонен']:
+                # Если заказ завершен или отклонен, показываем слот как свободный
+                slot_data['is_occupied'] = False
+                slot_data['status'] = 'free'
+                slot_data['order_id'] = None
             
             slots_data.append(slot_data)
         
@@ -199,6 +204,30 @@ def assign_order_to_slot(request):
             order.status = 'назначен'
             order.assigned_master = master
             order.save()
+            
+            # АВТОМАТИЧЕСКАЯ ОЧИСТКА при назначении: удаляем слоты завершенных заказов
+            try:
+                completed_slots = OrderSlot.objects.filter(
+                    master=master,
+                    order__status__in=['завершен', 'отклонен']
+                )
+                if completed_slots.exists():
+                    completed_count = completed_slots.count()
+                    completed_slots.delete()
+                    print(f"DEBUG: АВТООЧИСТКА при назначении - Удалено {completed_count} слотов завершенных заказов у мастера {master.email}")
+                    
+                # Также очищаем устаревшие слоты
+                outdated_slots = OrderSlot.objects.filter(
+                    master=master,
+                    status__in=['completed', 'cancelled']
+                )
+                if outdated_slots.exists():
+                    outdated_count = outdated_slots.count()
+                    outdated_slots.delete()
+                    print(f"DEBUG: АВТООЧИСТКА при назначении - Удалено {outdated_count} устаревших слотов у мастера {master.email}")
+                    
+            except Exception as cleanup_error:
+                print(f"DEBUG: Ошибка автоматической очистки при назначении: {str(cleanup_error)}")
         
         return Response({
             'message': 'Order assigned to slot successfully',
