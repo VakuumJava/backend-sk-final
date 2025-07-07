@@ -198,11 +198,12 @@ def get_order_profit_preview(request, order_id):
     """
     try:
         from ..models import Order
+        from decimal import Decimal
         
         order = get_object_or_404(Order, id=order_id)
         
         # Проверяем права доступа
-        if request.user.role not in ['super-admin'] and request.user.id != order.assigned_master_id:
+        if request.user.role not in ['super-admin', 'curator'] and request.user.id != order.assigned_master_id:
             return Response(
                 {'error': 'У вас нет прав для просмотра этой информации'}, 
                 status=status.HTTP_403_FORBIDDEN
@@ -211,20 +212,43 @@ def get_order_profit_preview(request, order_id):
         # Получаем настройки прибыли для заказа
         profit_settings = order.get_profit_settings()
         
+        # Определяем сумму для расчета (приоритет: final_cost -> estimated_cost)
+        total_amount = order.final_cost or order.estimated_cost or Decimal('0')
+        
+        # Рассчитываем распределение только если есть сумма
+        estimated_distribution = None
+        if total_amount > 0:
+            # ИСПРАВЛЕНИЕ: master_paid и master_balance - это одно и то же значение
+            # Общий процент мастера = master_paid_percent + master_balance_percent
+            master_total_percent = Decimal(profit_settings['master_paid_percent']) + Decimal(profit_settings['master_balance_percent'])
+            master_total_amount = total_amount * master_total_percent / Decimal('100')
+            
+            # master_paid и master_balance равны общей сумме мастера
+            master_paid = master_total_amount
+            master_balance = master_total_amount
+            
+            curator_amount = total_amount * Decimal(profit_settings['curator_percent']) / Decimal('100')
+            company_amount = total_amount * Decimal(profit_settings['company_percent']) / Decimal('100')
+            
+            estimated_distribution = {
+                'total_amount': str(total_amount),
+                'master_paid': str(master_paid.quantize(Decimal('0.01'))),
+                'master_balance': str(master_balance.quantize(Decimal('0.01'))),
+                'master_total_percent': str(master_total_percent),
+                'curator_amount': str(curator_amount.quantize(Decimal('0.01'))),
+                'company_amount': str(company_amount.quantize(Decimal('0.01'))),
+                'settings_used': profit_settings
+            }
+        
         return Response({
             'order_id': order.id,
             'assigned_master': {
                 'id': order.assigned_master.id if order.assigned_master else None,
                 'name': order.assigned_master.get_full_name() if order.assigned_master else None
             },
-            'profit_settings': profit_settings,
             'final_cost': str(order.final_cost) if order.final_cost else None,
-            'estimated_distribution': {
-                'master_paid': str((order.final_cost or 0) * profit_settings['master_paid_percent'] / 100) if order.final_cost else None,
-                'master_balance': str((order.final_cost or 0) * profit_settings['master_balance_percent'] / 100) if order.final_cost else None,
-                'curator_balance': str((order.final_cost or 0) * profit_settings['curator_percent'] / 100) if order.final_cost else None,
-                'company_cash': str((order.final_cost or 0) * profit_settings['company_percent'] / 100) if order.final_cost else None,
-            } if order.final_cost else None
+            'estimated_cost': str(order.estimated_cost) if order.estimated_cost else None,
+            'estimated_distribution': estimated_distribution
         })
         
     except Exception as e:

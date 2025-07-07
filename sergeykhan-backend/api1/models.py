@@ -441,8 +441,8 @@ class DistanceSettingsModel(models.Model):
         help_text="Пороговое значение среднего чека для обычной дистанционки"
     )
     visible_period_standard = models.PositiveIntegerField(
-        default=28,
-        help_text="Количество часов видимости для обычной дистанционки"
+        default=28,  # TODO: Изменить на 4 после создания миграции
+        help_text="Количество часов видимости для обычной дистанционки (+4 часа)"
     )
     
     # Суточная дистанционка
@@ -459,8 +459,8 @@ class DistanceSettingsModel(models.Model):
         help_text="Пороговое значение чистого вала за 10 дней для суточной дистанционки"
     )
     visible_period_daily = models.PositiveIntegerField(
-        default=48,
-        help_text="Количество часов видимости для суточной дистанционки"
+        default=48,  # TODO: Изменить на 24 после создания миграции  
+        help_text="Количество часов видимости для суточной дистанционки (+24 часа)"
     )
     
     # Метаданные
@@ -487,10 +487,10 @@ class DistanceSettingsModel(models.Model):
             id=1,
             defaults={
                 'average_check_threshold': 65000,
-                'visible_period_standard': 28,
+                'visible_period_standard': 28,  # TODO: Должно быть 4 для "+4 часа"
                 'daily_order_sum_threshold': 350000,
                 'net_turnover_threshold': 1500000,
-                'visible_period_daily': 48
+                'visible_period_daily': 48  # TODO: Должно быть 24 для "+24 часа"
             }
         )
         return settings

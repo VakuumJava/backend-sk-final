@@ -144,17 +144,19 @@ def get_visible_orders_for_master(master_id):
     master.refresh_from_db()
     
     now = timezone.now()
+    settings = DistanceSettingsModel.get_settings()
     
     # Определяем временной порог в зависимости от уровня дистанционки
     # Мастер видит заказы созданные за последние X часов
-    if master.dist == 2:  # Суточная дистанционка - видит заказы за последние 48 часов
-        time_threshold = now - timedelta(hours=48)
-    elif master.dist == 1:  # Дневная дистанционка - видит заказы за последние 28 часов
-        time_threshold = now - timedelta(hours=28)
+    if master.dist == 2:  # Суточная дистанционка
+        time_threshold = now - timedelta(hours=settings.visible_period_daily)
+    elif master.dist == 1:  # Обычная дистанционка (+4 часа от стандартного времени)
+        time_threshold = now - timedelta(hours=settings.visible_period_standard)
     else:  # Нет дистанционки - видит заказы за последние 24 часа
         time_threshold = now - timedelta(hours=24)
     
     print(f"DEBUG: Master {master_id} (dist level {master.dist}) sees orders from {time_threshold}")
+    print(f"DEBUG: Visibility period: {settings.visible_period_standard if master.dist == 1 else settings.visible_period_daily if master.dist == 2 else 24} hours")
     
     # Возвращаем только НОВЫЕ заказы, которые видны мастеру в зависимости от дистанционки
     orders = Order.objects.filter(
