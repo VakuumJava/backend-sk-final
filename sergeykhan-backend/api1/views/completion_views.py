@@ -183,12 +183,16 @@ def review_completion(request, completion_id):
                         distribution = distribute_completion_funds(completion, request.user)
                         if distribution:
                             result_data.update({
-                                'master_payment': distribution.get('master_amount', 0),
+                                'master_payment': distribution.get('master_amount_paid', 0),
                                 'curator_payment': distribution.get('curator_amount', 0),
                                 'company_payment': distribution.get('company_amount', 0)
                             })
+                            print(f"DEBUG: Распределение средств завершено: {distribution}")
+                        else:
+                            print(f"DEBUG: Распределение средств не выполнено - пустой результат")
                     except Exception as dist_error:
                         # Если ошибка в распределении средств, возвращаем успешный ответ но с предупреждением
+                        print(f"DEBUG: Ошибка в распределении средств: {str(dist_error)}")
                         result_data['distribution_error'] = f'Ошибка распределения средств: {str(dist_error)}'
                     
                     # Полностью удаляем все слоты для завершенного заказа
@@ -343,7 +347,7 @@ def distribute_completion_funds(completion, curator):
             description=f'Начало распределения средств: {distribution["settings_used"]} для заказа #{completion.order.id}'
         )
         
-        # 1. Выплата мастеру: к выплате идет в "Выплачено", к балансу = выплата + баланс
+        # 1. Выплата мастеру: к выплате и к балансу - РАЗНЫЕ суммы
         
         # 1.1. К выплате (идет в кошелек "Выплачено")
         master_balance, created = Balance.objects.get_or_create(user=completion.master)
@@ -351,11 +355,10 @@ def distribute_completion_funds(completion, curator):
         master_balance.amount += master_immediate
         master_balance.save()
         
-        # 1.2. К балансу (сумма выплаты + баланса, идет отдельно)
-        # Здесь нужно добавить логику для баланса мастера, если есть отдельная модель
-        total_to_balance = master_immediate + master_deferred
+        # 1.2. К балансу мастера (отдельная сумма)
+        # TODO: Добавить логику для отдельного баланса мастера, если необходимо
         
-        # Логируем транзакцию выплаты (идет в "Выплачено")
+        # Логируем транзакцию выплаты (только к выплате)
         FinancialTransaction.objects.create(
             user=completion.master,
             order_completion=completion,
@@ -364,13 +367,13 @@ def distribute_completion_funds(completion, curator):
             description=f'К выплате за завершение заказа #{completion.order.id} ({distribution["settings_details"]["master_paid_percent"]}%)'
         )
         
-        # Логируем транзакцию баланса (общая сумма)
+        # Логируем транзакцию баланса (только к балансу)
         FinancialTransaction.objects.create(
             user=completion.master,
             order_completion=completion,
             transaction_type='master_balance_total',
-            amount=total_to_balance,
-            description=f'К балансу за завершение заказа #{completion.order.id}: выплата {master_immediate} ({distribution["settings_details"]["master_paid_percent"]}%) + баланс {master_deferred} ({distribution["settings_details"]["master_balance_percent"]}%) = {total_to_balance}'
+            amount=master_deferred,
+            description=f'К балансу за завершение заказа #{completion.order.id} ({distribution["settings_details"]["master_balance_percent"]}%)'
         )
         
         # Логируем изменение выплаченного баланса мастера (только к выплате)
@@ -437,19 +440,19 @@ def distribute_completion_funds(completion, curator):
         completion.save()
         
         # Логируем успешное завершение
-        total_to_balance = master_immediate + master_deferred
+        total_master_amount = master_immediate + master_deferred
         total_master_percent = distribution["settings_details"]["master_paid_percent"] + distribution["settings_details"]["master_balance_percent"]
         log_order_action(
             order=completion.order,
             action='distribution_completed',
             performed_by=curator,
-            description=f'Распределение средств завершено: мастер к выплате {master_immediate} ({distribution["settings_details"]["master_paid_percent"]}%), к балансу {total_to_balance} ({total_master_percent}%), куратор {curator_share} ({distribution["settings_details"]["curator_percent"]}%), компания {company_share} ({distribution["settings_details"]["company_percent"]}%)'
+            description=f'Распределение средств завершено: мастер к выплате {master_immediate} ({distribution["settings_details"]["master_paid_percent"]}%), к балансу {master_deferred} ({distribution["settings_details"]["master_balance_percent"]}%), всего мастеру {total_master_amount} ({total_master_percent}%), куратор {curator_share} ({distribution["settings_details"]["curator_percent"]}%), компания {company_share} ({distribution["settings_details"]["company_percent"]}%)'
         )
         
         # Возвращаем информацию о распределенных средствах
         return {
             'master_amount_paid': master_immediate,  # К выплате
-            'master_amount_balance': total_to_balance,  # К балансу
+            'master_amount_balance': master_deferred,  # К балансу
             'curator_amount': curator_share,
             'company_amount': company_share,
         }

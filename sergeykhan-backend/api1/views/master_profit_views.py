@@ -218,23 +218,18 @@ def get_order_profit_preview(request, order_id):
         # Рассчитываем распределение только если есть сумма
         estimated_distribution = None
         if total_amount > 0:
-            # ИСПРАВЛЕНИЕ: master_paid и master_balance - это одно и то же значение
-            # Общий процент мастера = master_paid_percent + master_balance_percent
-            master_total_percent = Decimal(profit_settings['master_paid_percent']) + Decimal(profit_settings['master_balance_percent'])
-            master_total_amount = total_amount * master_total_percent / Decimal('100')
-            
-            # master_paid и master_balance равны общей сумме мастера
-            master_paid = master_total_amount
-            master_balance = master_total_amount
+            # Правильная логика: master_paid и master_balance - разные части
+            master_paid_amount = total_amount * Decimal(profit_settings['master_paid_percent']) / Decimal('100')
+            master_balance_amount = total_amount * Decimal(profit_settings['master_balance_percent']) / Decimal('100')
             
             curator_amount = total_amount * Decimal(profit_settings['curator_percent']) / Decimal('100')
             company_amount = total_amount * Decimal(profit_settings['company_percent']) / Decimal('100')
             
             estimated_distribution = {
                 'total_amount': str(total_amount),
-                'master_paid': str(master_paid.quantize(Decimal('0.01'))),
-                'master_balance': str(master_balance.quantize(Decimal('0.01'))),
-                'master_total_percent': str(master_total_percent),
+                'master_paid': str(master_paid_amount.quantize(Decimal('0.01'))),
+                'master_balance': str(master_balance_amount.quantize(Decimal('0.01'))),
+                'master_total_percent': str((Decimal(profit_settings['master_paid_percent']) + Decimal(profit_settings['master_balance_percent']))),
                 'curator_amount': str(curator_amount.quantize(Decimal('0.01'))),
                 'company_amount': str(company_amount.quantize(Decimal('0.01'))),
                 'settings_used': profit_settings
