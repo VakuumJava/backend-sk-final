@@ -219,7 +219,8 @@ def assign_master(request, order_id):
         # Определяем номер слота в дне (основан на времени начала)
         time_to_slot_number = {
             '09:00:00': 1, '10:00:00': 2, '11:00:00': 3, '12:00:00': 4,
-            '13:00:00': 5, '14:00:00': 6, '15:00:00': 7, '16:00:00': 8, '17:00:00': 9
+            '13:00:00': 5, '14:00:00': 6, '15:00:00': 7, '16:00:00': 8, 
+            '17:00:00': 9, '18:00:00': 10, '19:00:00': 11, '20:00:00': 12
         }
         
         slot_number = time_to_slot_number.get(scheduled_time, 1)
@@ -764,6 +765,10 @@ def transfer_order_to_warranty_master(request, order_id):
                         (datetime.strptime("13:00", "%H:%M").time(), datetime.strptime("15:00", "%H:%M").time()): 3,
                         # 15:00-17:00 = slot 4
                         (datetime.strptime("15:00", "%H:%M").time(), datetime.strptime("17:00", "%H:%M").time()): 4,
+                        # 17:00-19:00 = slot 5
+                        (datetime.strptime("17:00", "%H:%M").time(), datetime.strptime("19:00", "%H:%M").time()): 5,
+                        # 19:00-21:00 = slot 6
+                        (datetime.strptime("19:00", "%H:%M").time(), datetime.strptime("21:00", "%H:%M").time()): 6,
                     }
                     
                     # Find which slot the requested time falls into

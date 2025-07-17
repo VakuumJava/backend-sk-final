@@ -1137,9 +1137,9 @@ class MasterDailySchedule(models.Model):
     
     # Конфигурация рабочего дня
     work_start_time = models.TimeField(default='09:00:00', verbose_name='Начало рабочего дня')
-    work_end_time = models.TimeField(default='17:00:00', verbose_name='Конец рабочего дня')
+    work_end_time = models.TimeField(default='21:00:00', verbose_name='Конец рабочего дня')  # Изменено с 17:00 на 21:00
     slot_duration = models.DurationField(default=timedelta(hours=2), verbose_name='Длительность слота')
-    max_slots = models.PositiveIntegerField(default=8, verbose_name='Максимум слотов в день')
+    max_slots = models.PositiveIntegerField(default=12, verbose_name='Максимум слотов в день')  # Увеличено с 8 до 12 слотов
     
     # Статус дня
     is_working_day = models.BooleanField(default=True, verbose_name='Рабочий день')
@@ -1220,10 +1220,10 @@ class MasterDailySchedule(models.Model):
             master=master,
             date=date,
             defaults={
-                'work_start_time': time(9, 0),  # 09:00
-                'work_end_time': time(17, 0),   # 17:00
+                'work_start_time': time(9, 0),   # 09:00
+                'work_end_time': time(21, 0),    # 21:00 (изменено с 17:00)
                 'slot_duration': timedelta(hours=2),
-                'max_slots': 8,
+                'max_slots': 12,  # Увеличено с 8 до 12 слотов (6 слотов по 2 часа = 12 часов)
                 'is_working_day': True
             }
         )
