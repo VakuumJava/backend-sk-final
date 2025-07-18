@@ -53,6 +53,9 @@ def master_schedule_view(request, master_id=None):
         if request.method == 'GET':
             return get_master_schedule(target_user)
         elif request.method == 'POST':
+            # Только кураторы и супер-админы могут сохранять расписание
+            if user.role not in ['curator', 'super-admin']:
+                return JsonResponse({'error': 'Permission denied. Only curators and super-admins can edit schedules.'}, status=403)
             return save_master_schedule(request, target_user)
             
     except Exception as e:
