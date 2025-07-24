@@ -287,7 +287,9 @@ class ProfitDistributionSettings(models.Model):
     initial_kassa_percent = models.PositiveIntegerField(default=70, help_text="Устарело")
     cash_percent = models.PositiveIntegerField(default=30, help_text="Устарело")
     balance_percent = models.PositiveIntegerField(default=30, help_text="Устарело")
-    final_kassa_percent = models.PositiveIntegerField(default=35, help_text="Устарело")    # Метаданные
+    final_kassa_percent = models.PositiveIntegerField(default=35, help_text="Устарело")
+    
+    # Метаданные
     is_active = models.BooleanField(default=True, help_text="Активность настроек")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -647,9 +649,11 @@ class OrderCompletion(models.Model):
     is_distributed = models.BooleanField(default=False, verbose_name="Средства распределены")
     
     def save(self, *args, **kwargs):
-        # Автоматический расчет общих расходов и чистой прибыли - приводим к Decimal
-        self.total_expenses = Decimal(str(self.parts_expenses)) + Decimal(str(self.transport_costs))
-        self.net_profit = Decimal(str(self.total_received)) - self.total_expenses
+
+        # Автоматический расчет общих расходов и чистой прибыли
+        self.total_expenses = self.parts_expenses + self.transport_costs
+        self.net_profit = self.total_received - self.total_expenses
+
         super().save(*args, **kwargs)
         
     def calculate_distribution(self):
@@ -663,7 +667,6 @@ class OrderCompletion(models.Model):
             return None
             
         # Получаем индивидуальные настройки мастера или глобальные
-        from .models import MasterProfitSettings  # Избегаем циклического импорта
         settings = MasterProfitSettings.get_settings_for_master(master)
         
         # Используем новые поля для распределения - приводим net_profit к Decimal
@@ -673,7 +676,8 @@ class OrderCompletion(models.Model):
         master_total = master_immediate + master_deferred
         
         # Доля компании
-        company_share = net_profit_decimal * (Decimal(settings['company_percent']) / 100)        
+
+        company_share = self.net_profit * (Decimal(settings['company_percent']) / 100)
         # Доля куратору
         curator_share = net_profit_decimal * (Decimal(settings['curator_percent']) / 100)
         
@@ -1139,9 +1143,9 @@ class MasterDailySchedule(models.Model):
     
     # Конфигурация рабочего дня
     work_start_time = models.TimeField(default='09:00:00', verbose_name='Начало рабочего дня')
-    work_end_time = models.TimeField(default='17:00:00', verbose_name='Конец рабочего дня')
+    work_end_time = models.TimeField(default='21:00:00', verbose_name='Конец рабочего дня')  # Изменено с 17:00 на 21:00
     slot_duration = models.DurationField(default=timedelta(hours=2), verbose_name='Длительность слота')
-    max_slots = models.PositiveIntegerField(default=8, verbose_name='Максимум слотов в день')
+    max_slots = models.PositiveIntegerField(default=12, verbose_name='Максимум слотов в день')  # Увеличено с 8 до 12 слотов
     
     # Статус дня
     is_working_day = models.BooleanField(default=True, verbose_name='Рабочий день')
@@ -1231,10 +1235,10 @@ class MasterDailySchedule(models.Model):
             master=master,
             date=date,
             defaults={
-                'work_start_time': time(9, 0),  # 09:00
-                'work_end_time': time(17, 0),   # 17:00
+                'work_start_time': time(9, 0),   # 09:00
+                'work_end_time': time(21, 0),    # 21:00 (изменено с 17:00)
                 'slot_duration': timedelta(hours=2),
-                'max_slots': 8,
+                'max_slots': 12,  # Увеличено с 8 до 12 слотов (6 слотов по 2 часа = 12 часов)
                 'is_working_day': True
             }
         )

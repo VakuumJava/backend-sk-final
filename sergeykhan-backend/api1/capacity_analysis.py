@@ -89,8 +89,8 @@ def analyze_day_capacity(target_date, masters):
     # Средняя продолжительность заказа (предположим 2-4 часа)
     avg_order_duration_hours = 3
     
-    # Средняя продолжительность рабочего дня мастера (8 часов)
-    avg_workday_hours = 8
+    # Средняя продолжительность рабочего дня мастера (12 часов: с 9:00 до 21:00)
+    avg_workday_hours = 12
     
     # Максимальное количество заказов, которое может выполнить один мастер за день
     max_orders_per_master_per_day = avg_workday_hours // avg_order_duration_hours
