@@ -466,14 +466,8 @@ class OrderCompletionReviewSerializer(serializers.ModelSerializer):
         
         completion = super().update(instance, validated_data)
         
-        # Обновляем статус заказа
-        if completion.status == 'одобрен':
-            completion.order.status = 'завершен'
-        else:
-            # Если отклонен, возвращаем в "в процессе"
-            completion.order.status = 'в процессе'
-        
-        completion.order.save()
+        # НЕ обновляем статус заказа здесь - это делается в представлении
+        # чтобы избежать дублирования логики
         
         return completion
 

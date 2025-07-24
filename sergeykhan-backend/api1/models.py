@@ -443,8 +443,8 @@ class DistanceSettingsModel(models.Model):
         help_text="Пороговое значение среднего чека для обычной дистанционки"
     )
     visible_period_standard = models.PositiveIntegerField(
-        default=28,
-        help_text="Количество часов видимости для обычной дистанционки"
+        default=28,  # TODO: Изменить на 4 после создания миграции
+        help_text="Количество часов видимости для обычной дистанционки (+4 часа)"
     )
     
     # Суточная дистанционка
@@ -461,8 +461,8 @@ class DistanceSettingsModel(models.Model):
         help_text="Пороговое значение чистого вала за 10 дней для суточной дистанционки"
     )
     visible_period_daily = models.PositiveIntegerField(
-        default=48,
-        help_text="Количество часов видимости для суточной дистанционки"
+        default=48,  # TODO: Изменить на 24 после создания миграции  
+        help_text="Количество часов видимости для суточной дистанционки (+24 часа)"
     )
     
     # Метаданные
@@ -489,10 +489,10 @@ class DistanceSettingsModel(models.Model):
             id=1,
             defaults={
                 'average_check_threshold': 65000,
-                'visible_period_standard': 28,
+                'visible_period_standard': 28,  # TODO: Должно быть 4 для "+4 часа"
                 'daily_order_sum_threshold': 350000,
                 'net_turnover_threshold': 1500000,
-                'visible_period_daily': 48
+                'visible_period_daily': 48  # TODO: Должно быть 24 для "+24 часа"
             }
         )
         return settings
@@ -649,9 +649,11 @@ class OrderCompletion(models.Model):
     is_distributed = models.BooleanField(default=False, verbose_name="Средства распределены")
     
     def save(self, *args, **kwargs):
+
         # Автоматический расчет общих расходов и чистой прибыли
         self.total_expenses = self.parts_expenses + self.transport_costs
         self.net_profit = self.total_received - self.total_expenses
+
         super().save(*args, **kwargs)
         
     def calculate_distribution(self):
@@ -667,16 +669,17 @@ class OrderCompletion(models.Model):
         # Получаем индивидуальные настройки мастера или глобальные
         settings = MasterProfitSettings.get_settings_for_master(master)
         
-        # Используем новые поля для распределения
-        master_immediate = self.net_profit * (Decimal(settings['master_paid_percent']) / 100)
-        master_deferred = self.net_profit * (Decimal(settings['master_balance_percent']) / 100)
+        # Используем новые поля для распределения - приводим net_profit к Decimal
+        net_profit_decimal = Decimal(str(self.net_profit))
+        master_immediate = net_profit_decimal * (Decimal(settings['master_paid_percent']) / 100)
+        master_deferred = net_profit_decimal * (Decimal(settings['master_balance_percent']) / 100)
         master_total = master_immediate + master_deferred
         
         # Доля компании
+
         company_share = self.net_profit * (Decimal(settings['company_percent']) / 100)
-        
         # Доля куратору
-        curator_share = self.net_profit * (Decimal(settings['curator_percent']) / 100)
+        curator_share = net_profit_decimal * (Decimal(settings['curator_percent']) / 100)
         
         return {
             'master_immediate': master_immediate,
@@ -1182,14 +1185,22 @@ class MasterDailySchedule(models.Model):
                     slot_date=self.date,
                     slot_number=slot_number
                 )
+                # Слот считается занятым только если:
+                # 1. Статус слота не 'completed' и не 'cancelled'
+                # 2. Статус заказа не 'завершен' и не 'отклонен'
+                is_occupied = (
+                    order_slot.status not in ['completed', 'cancelled'] and
+                    order_slot.order.status not in ['завершен', 'отклонен']
+                )
+                
                 slot_info = {
                     'slot_number': slot_number,
                     'time': current_time.time(),
                     'end_time': (current_time + self.slot_duration).time(),
-                    'is_occupied': True,
-                    'order': order_slot.order,
+                    'is_occupied': is_occupied,
+                    'order': order_slot.order if is_occupied else None,
                     'order_slot': order_slot,
-                    'status': order_slot.status
+                    'status': order_slot.status if is_occupied else 'free'
                 }
             except OrderSlot.DoesNotExist:
                 slot_info = {
@@ -1199,7 +1210,8 @@ class MasterDailySchedule(models.Model):
                     'is_occupied': False,
                     'order': None,
                     'order_slot': None,
-                    'status': 'free'                }
+                    'status': 'free'
+                }
             slots.append(slot_info)
             current_time += self.slot_duration
             slot_number += 1
@@ -1207,12 +1219,12 @@ class MasterDailySchedule(models.Model):
         return slots
     
     def get_free_slots_count(self):
-        """Получить количество свободных слотов"""
+        """Получить количество свободных слотов (включая завершенные)"""
         slots = self.get_all_slots()
         return len([slot for slot in slots if not slot['is_occupied']])
     
     def get_occupied_slots_count(self):
-        """Получить количество занятых слотов"""
+        """Получить количество занятых слотов (исключая завершенные)"""
         slots = self.get_all_slots()
         return len([slot for slot in slots if slot['is_occupied']])
     
