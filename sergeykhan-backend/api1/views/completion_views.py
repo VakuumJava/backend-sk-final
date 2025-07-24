@@ -39,23 +39,6 @@ def complete_order(request, order_id):
         data = request.data.copy()
         data['order'] = order_id  # Добавляем ID заказа из URL
         
-        # Логирование для отладки
-        print(f"DEBUG: Получены данные от фронтенда:")
-        print(f"DEBUG: request.data = {request.data}")
-        print(f"DEBUG: order_id from URL = {order_id}")
-        print(f"DEBUG: request.FILES = {request.FILES}")
-        
-        # Получаем загружаемые фотографии для логирования
-        completion_photos = request.FILES.getlist('completion_photos')
-        if completion_photos:
-            print(f"DEBUG: Найдено {len(completion_photos)} фотографий")
-            for i, photo in enumerate(completion_photos):
-                print(f"  Фото {i+1}: {photo.name}, размер: {photo.size}, тип: {photo.content_type}")
-        else:
-            print("DEBUG: Фотографии не найдены")
-        
-        print(f"DEBUG: Финальные данные для сериализатора: {data}")
-        
         # Создаем сериализатор
         serializer = OrderCompletionCreateSerializer(data=data, context={'request': request})
         
@@ -74,13 +57,11 @@ def complete_order(request, order_id):
             
             return Response(OrderCompletionSerializer(completion, context={'request': request}).data, status=status.HTTP_201_CREATED)
         
-        print(f"DEBUG: Ошибки сериализатора: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     except Order.DoesNotExist:
         return Response({'error': 'Заказ не найден'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        print(f"DEBUG: Неожиданная ошибка: {str(e)}")
         return Response({
             'error': 'Внутренняя ошибка сервера',
             'details': str(e)
@@ -138,7 +119,7 @@ def review_completion(request, completion_id):
                         distribution = distribute_completion_funds(completion, request.user)
                         if distribution:
                             result_data.update({
-                                'master_payment': distribution.get('master_amount', 0),
+                                'master_payment': distribution.get('master_amount_paid', 0),
                                 'curator_payment': distribution.get('curator_amount', 0),
                                 'company_payment': distribution.get('company_amount', 0)
                             })
@@ -205,6 +186,7 @@ def distribute_completion_funds(completion, curator):
     
     try:
         # Ensure all monetary values are Decimal to avoid type errors
+        from decimal import Decimal
         master_immediate = Decimal(str(distribution['master_immediate']))
         master_deferred = Decimal(str(distribution['master_deferred']))
         curator_share = Decimal(str(distribution['curator_share']))
@@ -223,7 +205,7 @@ def distribute_completion_funds(completion, curator):
         # 1.1. К выплате (идет в кошелек "Выплачено")
         master_balance, created = Balance.objects.get_or_create(user=completion.master)
         old_master_balance = master_balance.amount
-        master_balance.amount += master_immediate
+        master_balance.amount = Decimal(str(master_balance.amount)) + master_immediate
         master_balance.save()
         
         # 1.2. К балансу (сумма выплаты + баланса, идет отдельно)
@@ -262,7 +244,7 @@ def distribute_completion_funds(completion, curator):
         # 2. Выплата куратору (процент из настроек)
         curator_balance, created = Balance.objects.get_or_create(user=curator)
         old_curator_balance = curator_balance.amount
-        curator_balance.amount += curator_share
+        curator_balance.amount = Decimal(str(curator_balance.amount)) + curator_share
         curator_balance.save()
         
         FinancialTransaction.objects.create(
@@ -284,20 +266,19 @@ def distribute_completion_funds(completion, curator):
         )
         
         # 3. Доход компании (процент из настроек)
-        company_balance = CompanyBalance.objects.first()
-        if company_balance:
-            old_company_balance = company_balance.amount
-            company_balance.amount += company_share
-            company_balance.save()
-            
-            CompanyBalanceLog.objects.create(
-                action_type='top_up',  # Используем правильный action_type
-                amount=company_share,
-                reason=f'Доход от завершения заказа #{completion.order.id} ({distribution["settings_details"]["company_percent"]}%)',
-                performed_by=curator,
-                old_value=old_company_balance,
-                new_value=company_balance.amount
-            )
+        company_balance = CompanyBalance.get_instance()  # Используем метод который автоматически создает баланс
+        old_company_balance = company_balance.amount
+        company_balance.amount = Decimal(str(company_balance.amount)) + company_share
+        company_balance.save()
+        
+        CompanyBalanceLog.objects.create(
+            action_type='top_up',  # Используем правильный action_type
+            amount=company_share,
+            reason=f'Доход от завершения заказа #{completion.order.id} ({distribution["settings_details"]["company_percent"]}%)',
+            performed_by=curator,
+            old_value=old_company_balance,
+            new_value=company_balance.amount
+        )
         
         FinancialTransaction.objects.create(
             user=curator,

@@ -287,7 +287,9 @@ class ProfitDistributionSettings(models.Model):
     initial_kassa_percent = models.PositiveIntegerField(default=70, help_text="Устарело")
     cash_percent = models.PositiveIntegerField(default=30, help_text="Устарело")
     balance_percent = models.PositiveIntegerField(default=30, help_text="Устарело")
-    final_kassa_percent = models.PositiveIntegerField(default=35, help_text="Устарело")    # Метаданные
+    final_kassa_percent = models.PositiveIntegerField(default=35, help_text="Устарело")
+    
+    # Метаданные
     is_active = models.BooleanField(default=True, help_text="Активность настроек")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -647,7 +649,8 @@ class OrderCompletion(models.Model):
     is_distributed = models.BooleanField(default=False, verbose_name="Средства распределены")
     
     def save(self, *args, **kwargs):
-        # Автоматический расчет общих расходов и чистой прибыли        self.total_expenses = self.parts_expenses + self.transport_costs
+        # Автоматический расчет общих расходов и чистой прибыли
+        self.total_expenses = self.parts_expenses + self.transport_costs
         self.net_profit = self.total_received - self.total_expenses
         super().save(*args, **kwargs)
         
@@ -662,7 +665,6 @@ class OrderCompletion(models.Model):
             return None
             
         # Получаем индивидуальные настройки мастера или глобальные
-        from .models import MasterProfitSettings  # Избегаем циклического импорта
         settings = MasterProfitSettings.get_settings_for_master(master)
         
         # Используем новые поля для распределения
@@ -671,7 +673,8 @@ class OrderCompletion(models.Model):
         master_total = master_immediate + master_deferred
         
         # Доля компании
-        company_share = self.net_profit * (Decimal(settings['company_percent']) / 100)        
+        company_share = self.net_profit * (Decimal(settings['company_percent']) / 100)
+        
         # Доля куратору
         curator_share = self.net_profit * (Decimal(settings['curator_percent']) / 100)
         

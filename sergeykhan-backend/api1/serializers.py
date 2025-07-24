@@ -321,6 +321,8 @@ class OrderCompletionSerializer(serializers.ModelSerializer):
 class OrderCompletionCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания завершения заказа мастером"""
     
+    completion_date = serializers.DateTimeField(required=False)  # Делаем поле необязательным
+    
     class Meta:
         model = OrderCompletion
         fields = [
@@ -345,11 +347,16 @@ class OrderCompletionCreateSerializer(serializers.ModelSerializer):
         """Создаем завершение заказа и обновляем статус заказа"""
         import os
         from django.conf import settings
+        from django.utils import timezone
         from datetime import datetime
         import uuid
         
         request = self.context.get('request')
         validated_data['master'] = request.user
+        
+        # Устанавливаем completion_date если не передана
+        if 'completion_date' not in validated_data or not validated_data['completion_date']:
+            validated_data['completion_date'] = timezone.now()
         
         # Получаем фотографии из request.FILES напрямую
         completion_photos = request.FILES.getlist('completion_photos') if request else []
