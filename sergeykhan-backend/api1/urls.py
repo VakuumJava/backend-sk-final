@@ -2,7 +2,8 @@
 
 from django.urls import path
 from .views import *
-from .views.order_views import create_order, start_order, complete_order, transfer_order_to_warranty_master
+from .views.order_views import create_order, start_order, transfer_order_to_warranty_master
+from .views.completion_views import complete_order, cleanup_completed_orders_from_schedule
 from .balance_views import (
     get_user_balance_detailed,
     modify_balance,
@@ -180,6 +181,7 @@ urlpatterns = [
     path('api/completions/pending/', get_pending_completions, name='get_pending_completions'),
     path('api/completions/<int:completion_id>/', get_completion_detail, name='get_completion_detail'),
     path('api/completions/<int:completion_id>/review/', review_completion, name='review_completion'),
+    path('api/schedule/cleanup/', cleanup_completed_orders_from_schedule, name='cleanup_schedule'),
     path('api/completions/<int:completion_id>/distribution/', get_completion_distribution, name='get_completion_distribution'),
     path('api/transactions/', get_financial_transactions, name='get_financial_transactions'),
     path('api/transactions/all/', get_all_financial_transactions, name='get_all_financial_transactions'),    # Маршруты для индивидуальных настроек распределения прибыли мастеров
@@ -195,8 +197,15 @@ urlpatterns = [
     path('api/slots/master/<int:master_id>/available/', get_available_slots_for_master, name='get_available_slots_for_master'),
     path('api/slots/master/<int:master_id>/available/<str:schedule_date>/', get_available_slots_for_master, name='get_available_slots_for_master_date'),
     path('api/slots/release/', release_order_slot, name='release_order_slot'),
-    path('api/slots/order/<int:order_id>/', get_order_slot_info, name='get_order_slot_info'),    path('api/slots/masters/summary/', get_all_masters_slots_summary, name='get_all_masters_slots_summary'),
-    path('api/slots/masters/summary/<str:schedule_date>/', get_all_masters_slots_summary, name='get_all_masters_slots_summary_date'),    
+    path('api/slots/order/<int:order_id>/', get_order_slot_info, name='get_order_slot_info'),    path('api/slots/masters/summary/', get_all_masters_slots_summary, name='get_all_masters_slots_summary'),    path('api/slots/masters/summary/<str:schedule_date>/', get_all_masters_slots_summary, name='get_all_masters_slots_summary_date'),    
+    # Управление настройками сайта
+    path('site-settings/', SiteSettingsViewSet.as_view({'get': 'list', 'post': 'create'}), name='site_settings'),
+    path('site-settings/<int:pk>/', SiteSettingsViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='site_settings_detail'),
+    
+    # Управление услугами
+    path('services/', ServiceViewSet.as_view({'get': 'list', 'post': 'create'}), name='services'),
+    path('services/<int:pk>/', ServiceViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='service_detail'),
+    
     # Публичные API для лендинга
     path('public/settings/', get_public_settings, name='get_public_settings'),
     path('public/services/', get_public_services, name='get_public_services'),
