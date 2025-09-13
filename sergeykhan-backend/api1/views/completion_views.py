@@ -352,3 +352,35 @@ def get_completion_detail(request, completion_id):
         return Response(serializer.data)
     except OrderCompletion.DoesNotExist:
         return Response({'error': 'Completion not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@role_required([ROLES['SUPER_ADMIN'], ROLES['CURATOR']])
+def cleanup_completed_orders_from_schedule(request):
+    """Очистка завершенных заказов из расписания"""
+    try:
+        # Находим все завершенные заказы
+        completed_orders = Order.objects.filter(
+            status__in=['завершен', 'completed', 'принят']
+        )
+        
+        # Удаляем связанные слоты расписания для завершенных заказов
+        from api1.models import OrderSlot
+        deleted_slots = 0
+        
+        for order in completed_orders:
+            slots_deleted, _ = OrderSlot.objects.filter(order=order).delete()
+            deleted_slots += slots_deleted
+        
+        return Response({
+            'message': 'Очистка расписания завершена',
+            'completed_orders_count': completed_orders.count(),
+            'deleted_slots_count': deleted_slots
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'error': f'Ошибка при очистке расписания: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

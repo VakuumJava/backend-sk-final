@@ -30,6 +30,7 @@ ALLOWED_HOSTS = [
     '*.railway.app',
     '.railway.app',
     'backend-sk-final-production.up.railway.app',
+    'backend-sk-final-production-d5dd.up.railway.app',
     'sergeykhan-backend-production.up.railway.app'
 ]
 
@@ -40,6 +41,7 @@ if csrf_origins_str:
 else:
     CSRF_TRUSTED_ORIGINS = [
         'https://backend-sk-final-production.up.railway.app',
+        'https://backend-sk-final-production-d5dd.up.railway.app',
         'https://sergeykhan-backend-production.up.railway.app',
         'https://*.railway.app',
         'https://sergey-khan-web-visitor.vercel.app/',
@@ -155,6 +157,7 @@ if not CORS_ALLOW_ALL_ORIGINS:
             "http://localhost:3008",
             "http://localhost:3009",
             "https://backend-sk-final-production.up.railway.app",
+            "https://backend-sk-final-production-d5dd.up.railway.app",
             "https://sergey-khan-web-gamma.vercel.app",
             "https://sergeykhan-backend-production.up.railway.app",
             "https://*.railway.app",
@@ -164,7 +167,7 @@ if not CORS_ALLOW_ALL_ORIGINS:
             "https://sergey-khan-admin.vercel.app",
             "https://sergey-khan-master.vercel.app",
             "https://sergey-khan-curator.vercel.app",
-            "backend-sk-final-production-d5dd.up.railway.app"
+            "https://backend-sk-final-production-d5dd.up.railway.app"
         ]
 
 CORS_ALLOW_CREDENTIALS = True
