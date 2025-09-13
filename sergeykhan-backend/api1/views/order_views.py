@@ -560,17 +560,6 @@ def start_order(request, order_id):
         order.status = 'выполняется'
         order.save()
         
-        # Обновляем статус слота на "in_progress"
-        try:
-            from ..models import OrderSlot
-            order_slot = OrderSlot.objects.filter(order=order).first()
-            if order_slot:
-                order_slot.status = 'in_progress'
-                order_slot.save()
-                print(f"DEBUG: Слот для заказа {order.id} переведен в статус 'in_progress'")
-        except Exception as slot_error:
-            print(f"DEBUG: Ошибка при обновлении слота при начале заказа: {str(slot_error)}")
-        
         return Response({
             'message': f'Заказ #{order.id} начат',
             'order_id': order.id,

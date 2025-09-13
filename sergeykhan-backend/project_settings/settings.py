@@ -39,11 +39,17 @@ if csrf_origins_str:
     CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_str.split(',')]
 else:
     CSRF_TRUSTED_ORIGINS = [
-        'https://backend-sk-final-production.up.railway.app',        'https://sergeykhan-backend-production.up.railway.app',
+        'https://backend-sk-final-production.up.railway.app',
+        'https://sergeykhan-backend-production.up.railway.app',
         'https://*.railway.app',
-        'https://sergey-khan-web-visitor.vercel.app',
+        'https://sergey-khan-web-visitor.vercel.app/',
         'https://sergey-khan-web-gamma.vercel.app',
         'https://*.vercel.app',
+        'https://sergey-khan-operator-liard.vercel.app',
+        'https://sergey-khan-garant-master.vercel.app',
+        'https://sergey-khan-admin.vercel.app',
+        'https://sergey-khan-master.vercel.app',
+        'https://sergey-khan-curator.vercel.app'
     ]
 
 # Security settings for production
@@ -148,11 +154,17 @@ if not CORS_ALLOW_ALL_ORIGINS:
             "http://localhost:3007",
             "http://localhost:3008",
             "http://localhost:3009",
-            "https://backend-sk-final-production.up.railway.app",            
+            "https://backend-sk-final-production.up.railway.app",
             "https://sergey-khan-web-gamma.vercel.app",
             "https://sergeykhan-backend-production.up.railway.app",
             "https://*.railway.app",
-            "https://sergey-khan-web-visitor.vercel.app"
+            "https://sergey-khan-web-visitor.vercel.app",
+            "https://sergey-khan-operator-liard.vercel.app",
+            "https://sergey-khan-garant-master.vercel.app",
+            "https://sergey-khan-admin.vercel.app",
+            "https://sergey-khan-master.vercel.app",
+            "https://sergey-khan-curator.vercel.app",
+            "backend-sk-final-production-d5dd.up.railway.app"
         ]
 
 CORS_ALLOW_CREDENTIALS = True
