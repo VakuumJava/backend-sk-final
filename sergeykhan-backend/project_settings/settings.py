@@ -167,7 +167,9 @@ if not CORS_ALLOW_ALL_ORIGINS:
             "https://sergey-khan-admin.vercel.app",
             "https://sergey-khan-master.vercel.app",
             "https://sergey-khan-curator.vercel.app",
-            "https://backend-sk-final-production-d5dd.up.railway.app"
+            "https://backend-sk-final-production-d5dd.up.railway.app",
+            "https://xanservice.org",
+            "https://www.xanservice.org"
         ]
 
 CORS_ALLOW_CREDENTIALS = True
